@@ -1,0 +1,10 @@
+.vs
+.vscode
+*Debug
+include
+lib
+lib-x64
+*Release
+*.log
+*.vcxproj.filters
+*.vcxproj.user
