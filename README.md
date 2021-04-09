@@ -2,6 +2,8 @@
 
 It's a simple image viewer based on VS2019(v142), OpenCV 3.1.0 and Qt5.12.9. You can open an image, then make some operation such as zooming, dragging, etc.
 
+![](./docs/gifs/KvImage.gif)
+
 # Dependencies
 
 - VS2019
