@@ -1,5 +1,4 @@
 #pragma once
-
 #include <QtWidgets/QMainWindow>
 #include "ui_KvImage.h"
 #include <QFileDialog>
@@ -7,11 +6,18 @@
 #include <QDebug>
 #include "Transform.h"
 #include <QLabel>
-
 #include <QResizeEvent>
-#include <QWheelEvent>
-#include <QMouseEvent>
-#include <QMouseEvent>
+#include <QLayout>
+#include <QTreeView>
+#include <QHeaderView>
+#include <QTextBrowser>
+#include <QDesktopWidget>
+#include <QDateTime>
+#include "ImageViewer.h"
+#include <vector>
+#include <QStandardItemModel>
+#include "ImageDir.h"
+#include <QItemSelection>
 
 class KvImage : public QMainWindow
 {
@@ -19,27 +25,35 @@ class KvImage : public QMainWindow
 
 public:
 	KvImage(QWidget* parent = Q_NULLPTR);
-	void showImage(const cv::Mat& img);
-	void showImage(const cv::Mat& img, cv::Rect imgRect);
+	void refreshLayout();  // 刷新布局
+	void putText(QString txt);  // 在信息栏展示文字
+	void initSidebar();  // 初始化侧边栏
+	void refreshSidebar(QList<ImageDir>& imgDirList);  // 刷新侧边栏
 
 protected:
 	void resizeEvent(QResizeEvent* evt);
-	void wheelEvent(QWheelEvent* evt);
-	void mouseDoubleClickEvent(QMouseEvent* evt);
-	void mousePressEvent(QMouseEvent* evt);
-	void mouseMoveEvent(QMouseEvent* evt);
-	void mouseReleaseEvent(QMouseEvent* evt);
 
 private slots:
 	void on_action_open_image_triggered();
+	void on_action_open_directory_triggered();
+	void onImageSelectChanged(const QModelIndex& curIdx, const QModelIndex& preIdx);
 
 private:
 	Ui::KvImageClass ui;
 
-	QLabel* mLabel;
-	cv::Mat mImg;
-	cv::Rect mRect;
+	// 是否可见
+	bool sideBarVisible,
+		infoBarVisible;
+	// 尺寸比例
+	int sideBarWidth,
+		infoBarHeight;
+	
+	// 控件
+	ImageViewer* iViewer;
+	QTreeView* mSideBar;
+	QStandardItemModel* mSideBarModel;
+	QTextBrowser* mInfoBar;
 
-	// mouse start x,y; mouse end x,y
-	double msX, msY, meX, meY;
+	// 图像文件夹列表
+	QList<ImageDir> mImgDirList;
 };

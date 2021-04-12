@@ -5,16 +5,85 @@ KvImage::KvImage(QWidget* parent)
 {
 	ui.setupUi(this);
 
-	// 初始化成员变量
-	this->meX = this->msX = this->meY = this->meX = 0;
+	// 设置窗体大小
+	QDesktopWidget* desktopWidget = QApplication::desktop();
+	QRect deskRect = desktopWidget->availableGeometry();  // 可用桌面大小
+	int deskHeight, deskWidth;
+	deskHeight = deskRect.height();
+	deskWidth = deskRect.width();
+	int winHeight, winWidth;
+	winHeight = deskHeight * 0.8;
+	winWidth = deskWidth * 0.8;
+	this->setGeometry(deskWidth / 2 - winWidth / 2, deskHeight / 2 - winHeight / 2, winWidth, winHeight);
 
-	QString mainLabelName("main_label");
-	this->mLabel = ui.centralWidget->findChild<QLabel*>(mainLabelName);
-	if (!this->mLabel)
+	// 初始化变量
+	this->infoBarVisible = this->sideBarVisible = true;
+	this->sideBarWidth = winWidth * 0.2;
+	this->infoBarHeight = winHeight * 0.2;
+	this->sideBarWidth = this->sideBarWidth > 500 ? 500 : this->sideBarWidth;
+	this->infoBarHeight = this->infoBarHeight > 300 ? 300 : this->infoBarHeight;
+
+	// 添加控件
+	this->iViewer = new ImageViewer(ui.centralWidget);    // 图片显示窗口
+	this->mSideBar = new QTreeView(ui.centralWidget);     // 侧边栏
+	this->mInfoBar = new QTextBrowser(ui.centralWidget);  // 信息栏
+
+	this->refreshLayout();
+
+	this->mInfoBar->setOpenExternalLinks(true);
+
+	this->putText("Start App");
+
+	// 初始化侧边栏
+	this->initSidebar();
+	// 绑定信号和槽
+	connect(this->mSideBar->selectionModel(), &QItemSelectionModel::currentRowChanged, this, &KvImage::onImageSelectChanged);
+}
+
+void KvImage::refreshLayout()
+{
+	qDebug() << "KvImage::refreshLayout()";
+
+	// 获取中心控件的宽高
+	QSize cSize = ui.centralWidget->size();
+	int cw, ch;
+	cw = cSize.width();
+	ch = cSize.height();
+
+	// 计算各个控件的矩形
+	QRect imgRect,
+		sideRect,
+		infoRect;
+
+	// 设置侧边栏
+	sideRect.setX(0); sideRect.setY(0);
+	sideRect.setWidth(this->sideBarVisible ? this->sideBarWidth : 0);
+	sideRect.setHeight(ch);
+
+	// 设置底部信息栏
+	infoRect.setX(sideRect.width());
+	if (this->infoBarVisible)
 	{
-		qFatal(QString("QLabel [%1] not found!").arg(mainLabelName).toLocal8Bit());
+		infoRect.setY(ch - this->infoBarHeight);
+		infoRect.setHeight(this->infoBarHeight);
 	}
-	this->mLabel->setAlignment(Qt::AlignCenter);
+	else
+	{
+		infoRect.setY(ch);
+		infoRect.setHeight(0);
+	}
+	infoRect.setWidth(cw - sideRect.width());
+
+	// 设置图片区域
+	imgRect.setX(sideRect.width());
+	imgRect.setY(0);
+	imgRect.setWidth(cw - sideRect.width());
+	imgRect.setHeight(ch - infoRect.height());
+
+	// 应用矩形位置
+	this->mSideBar->setGeometry(sideRect);
+	this->mInfoBar->setGeometry(infoRect);
+	this->iViewer->setGeometry(imgRect);
 }
 
 
@@ -34,166 +103,117 @@ void KvImage::on_action_open_image_triggered()
 		return;
 	}
 
-	qInfo() << QString::fromLocal8Bit("打开图像 (%1)").arg(fileName);
-	this->mImg = cv::imread(fileName.toLocal8Bit().toStdString());
-	qInfo() << QString::fromLocal8Bit("图像尺寸：width=%1px, height=%2px")
-		.arg(this->mImg.cols)
-		.arg(this->mImg.rows);
-
-	// 计算图片矩形
-	this->mRect = Transform::calcImageRect(this->mImg, cv::Size(this->mLabel->width(), this->mLabel->height()));
-
-	// 显示图像
-	this->showImage(this->mImg, this->mRect);
-}
-
-void KvImage::showImage(const cv::Mat& img)
-{
-	if (!img.data)
-	{
-		qWarning() << "KvImage::showImage() - Mat is Empty!";
-		return;
-	}
-	time_t t = cv::getTickCount();
-
-	// 显示
-	this->mLabel->setPixmap(Transform::MatToQPixmap(img,
-		cv::Size(this->mLabel->width(), this->mLabel->height())));
-
-	qDebug() << "KvImage::showImage() - Cost time: "
-		<< (double(cv::getTickCount() - t) / cv::getTickFrequency()) << "s";
-}
-
-void KvImage::showImage(const cv::Mat& img, cv::Rect imgRect)
-{
-	if (!img.data)
-	{
-		qWarning() << "KvImage::showImage() - Mat is Empty!";
-		return;
-	}
-	time_t t = cv::getTickCount();
-
-	// 显示
-	this->mLabel->setPixmap(Transform::MatToQPixmap(img,
-		cv::Size(this->mLabel->width(), this->mLabel->height()), imgRect));
-
-	qDebug() << "KvImage::showImage() - Cost time: "
-		<< (double(cv::getTickCount() - t) / cv::getTickFrequency()) << "s";
+	cv::Mat img = cv::imread(fileName.toLocal8Bit().toStdString());
+	this->iViewer->openImage(img);
+	this->putText(QString::fromLocal8Bit("打开图像：%1 (width=%2, height=%3)")
+		.arg(fileName).arg(img.cols).arg(img.rows));
 }
 
 void KvImage::resizeEvent(QResizeEvent* evt)
 {
-	// 接收事件，不往下传递
-	evt->accept();
-
-	QSize winSize = this->size(),
-		menuSize = ui.menuBar->size(),
-		statusSize = ui.statusBar->size();
-
-	int labelHeight = winSize.height() - menuSize.height() - statusSize.height(),
-		labelWidth = winSize.width();
-
-	this->mLabel->setGeometry(0, 0, labelWidth, labelHeight);
-	qDebug() << "KvImage::resizeEvent() - Label size is (width=" << labelWidth
-		<< "px, height=" << labelHeight << "px)";
-
-	// 重新显示图片
-	if (labelWidth > 0 && labelHeight > 0 && this->mImg.data)
-	{
-		this->showImage(this->mImg, this->mRect);
-	}
+	this->refreshLayout();
 }
 
-void KvImage::wheelEvent(QWheelEvent* evt)
+void KvImage::on_action_open_directory_triggered()
 {
-	// 接收事件，不往下传递
-	evt->accept();
-	if (this->mImg.data)
+	QString dirPath = QFileDialog::getExistingDirectory(this,
+		QString::fromLocal8Bit("打开文件夹"));
+
+	if (dirPath.isEmpty())
 	{
-		qDebug() << "angleDelta: " << evt->angleDelta().y();  // angleDelta:  QPoint(0,120)
-		QPointF pt = evt->posF();    // 鼠标中心点
-		double delta = 0.1;          // 缩放系数
-		delta *= double(evt->angleDelta().y()) / 8 / 15;
-
-		// (x0-x1)/(x0-x2) = w1/w2 = 1/(1+delta)
-		double x0 = pt.x(),
-			y0 = pt.y(),
-			x1 = double(this->mRect.x),
-			y1 = double(this->mRect.y);
-		this->mRect.width *= (1 + delta);
-		this->mRect.height *= (1 + delta);
-		this->mRect.x = x0 + (x1 - x0) * (1 + delta);
-		this->mRect.y = y0 + (y1 - y0) * (1 + delta);
-
-		qDebug() << QString::fromLocal8Bit("当前图像大小：width=%1, height=%2; 显示区占图比例: w=%3, h=%4")
-			.arg(this->mRect.width)
-			.arg(this->mRect.height)
-			.arg(double(this->mLabel->width()) / double(this->mRect.width))
-			.arg(double(this->mLabel->height()) / double(this->mRect.height));
-
-		this->showImage(this->mImg, this->mRect);
+		qWarning() << QString::fromLocal8Bit("KvImage::on_action_open_directory_triggered() - 未选择文件夹");
+		return;
 	}
+
+	for (int i = 0; i < this->mImgDirList.size(); i++)
+	{
+		if (dirPath == this->mImgDirList[i].dirPath())
+		{
+			qWarning() << QString::fromLocal8Bit("%1 已打开").arg(dirPath);
+			return;
+		}
+	}
+
+	this->mImgDirList.append(ImageDir(dirPath));
+
+	this->refreshSidebar(this->mImgDirList);
+	this->putText(QString::fromLocal8Bit("打开文件夹 - %1").arg(dirPath));
 }
 
-void KvImage::mouseDoubleClickEvent(QMouseEvent* evt)
+void KvImage::onImageSelectChanged(const QModelIndex& curIdx, const QModelIndex& preIdx)
 {
-	// 接收事件，不往下传递
-	evt->accept();
-	QPointF pt = evt->localPos();
-	qDebug() << QString("KvImage::mouseDoubleClickEvent() - (x=%1, y=%2)")
-		.arg(pt.x()).arg(pt.y());
-
-	if (this->mImg.data)
+	// 如果没有父节点，说明是根节点
+	QModelIndex parentIdx = curIdx.parent();
+	if (!parentIdx.isValid())
 	{
-		this->mRect = Transform::calcImageRect(this->mImg, cv::Size(this->mLabel->width(), this->mLabel->height()));
-		this->showImage(this->mImg, this->mRect);
+		return;
 	}
+
+	// 获取图片路径
+	QStandardItem* item = ((QStandardItemModel*)this->mSideBar->model())->itemFromIndex(curIdx);
+	QString imgPath = QString("%1/%2")
+		.arg(this->mImgDirList[parentIdx.row()].dirPath())
+		.arg(item->text());
+	
+	qDebug() << QString::fromLocal8Bit("KvImage::onImageSelectChanged() - 选择图像: %1")
+		.arg(imgPath);
+	this->iViewer->openImage(imgPath);
 }
 
-void KvImage::mousePressEvent(QMouseEvent* evt)
+void KvImage::putText(QString txt)
 {
-	// 接收事件，不往下传递
-	evt->accept();
-	QPointF pt = evt->localPos();
-	this->msX = pt.x();
-	this->msY = pt.y();
-	qDebug() << QString("KvImage::mousePressEvent() - (x=%1, y=%2)")
-		.arg(this->msX).arg(this->msY);
+	if (!this->mInfoBar) return;
+
+	QString logStr = QString("(%1) - %2\n")
+		.arg(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss ddd"))  // 时间
+		.arg(txt);  // 消息内容
+
+	this->mInfoBar->textCursor().insertText(logStr);
 }
 
-void KvImage::mouseMoveEvent(QMouseEvent* evt)
+void KvImage::initSidebar()
 {
-	// 接收事件，不往下传递
-	evt->accept();
-	QPointF pt = evt->localPos();
-	this->meX = pt.x();
-	this->meY = pt.y();
-	qDebug() << QString("KvImage::mouseMoveEvent() - (x=%1, y=%2)")
-		.arg(this->meX).arg(this->meY);
+	// 侧边栏 单元格属性设置
+	this->mSideBar->setEditTriggers(QTreeView::NoEditTriggers);   //单元格不能编辑
+	this->mSideBar->setSelectionBehavior(QTreeView::SelectRows);  //一次选中整行
+	this->mSideBar->setSelectionMode(QTreeView::SingleSelection); //单选，配合上面的整行就是一次选单行
+	this->mSideBar->setAlternatingRowColors(true);                //每间隔一行颜色不一样，当有qss时该属性无效
+	this->mSideBar->setFocusPolicy(Qt::NoFocus);                  //去掉鼠标移到单元格上时的虚线框
+	this->mSideBar->header()->hide();
 
-	if (this->mImg.data && this->mLabel->height() > 0 && this->mLabel->width() > 0)
-	{
-		cv::Rect tRect = this->mRect;
-		tRect.x += (this->meX - this->msX);
-		tRect.y += (this->meY - this->msY);
-		this->showImage(this->mImg, tRect);
-	}
+	// 初始化侧边栏模型
+	this->mSideBarModel = new QStandardItemModel(this->mSideBar);
+	
+	// 应用模型
+	this->mSideBar->setModel(this->mSideBarModel);
 }
 
-void KvImage::mouseReleaseEvent(QMouseEvent* evt)
+void KvImage::refreshSidebar(QList<ImageDir>& imgDirList)
 {
-	// 接收事件，不往下传递
-	evt->accept();
-	QPointF pt = evt->localPos();
-	this->meX = pt.x();
-	this->meY = pt.y();
-	qDebug() << QString("KvImage::mouseReleaseEvent() - (x=%1, y=%2)")
-		.arg(this->meX).arg(this->meY);
-
-	if (this->mImg.data && this->mLabel->height() > 0 && this->mLabel->width() > 0)
+	if (!this->mSideBarModel)
 	{
-		this->mRect.x += (this->meX - this->msX);
-		this->mRect.y += (this->meY - this->msY);
-		this->showImage(this->mImg, this->mRect);
+		this->initSidebar();
 	}
+
+	// 清空数据
+	this->mSideBarModel->clear();
+
+	// 重新添加数据
+	int i;
+	for (i = 0; i < imgDirList.size(); i++)
+	{
+		QStandardItem* dirItem = new QStandardItem(imgDirList[i].dirName());
+		this->mSideBarModel->appendRow(dirItem);
+
+		QStringList imgNameList = imgDirList[i].getImageNameList();
+		for (int j = 0; j < imgNameList.size(); j++)
+		{
+			dirItem->appendRow(new QStandardItem(imgNameList.at(j)));
+		}
+	}
+
+	// 展开最新添加的一行
+	QModelIndex rootIndex = this->mSideBar->rootIndex();
+	QModelIndex lastRowIndex = this->mSideBarModel->index(i - 1, 0, rootIndex);
+	this->mSideBar->expand(lastRowIndex);
 }
