@@ -71,7 +71,7 @@ QImage Transform::MatToQImage(const cv::Mat& img)
 QImage Transform::MatToQImage(const cv::Mat& img, cv::Size imgSize)
 {
     cv::Mat src;
-    cv::Rect imgRect = Transform::calcImageRect(img, imgSize);
+    cv::Rect imgRect = Calc2D::calcImageRect(img, imgSize);
     cv::resize(img, src, cv::Size(imgRect.width, imgRect.height));
     
     return Transform::MatToQImage(src);
@@ -195,22 +195,3 @@ cv::Mat Transform::QPixmapToMat(const QPixmap& pxm, bool cloneImageData)
 {
     return Transform::QImageToMat(pxm.toImage(), cloneImageData);
 }
-
-cv::Rect Transform::calcImageRect(const cv::Mat& img, cv::Size imgSize)
-{
-    // 计算缩放比例
-    double xScale, yScale;
-    xScale = double(imgSize.width) / double(img.cols);
-    yScale = double(imgSize.height) / double(img.rows);
-    double scale = std::min(xScale, yScale);
-
-    // 计算缩放后的图片矩形（居中显示)
-    cv::Rect imgRect;
-    imgRect.width = int(img.cols * scale);
-    imgRect.height = int(img.rows * scale);
-    imgRect.x = int((imgSize.width - imgRect.width) / 2);
-    imgRect.y = int((imgSize.height - imgRect.height) / 2);
-
-    return imgRect;
-}
-

@@ -58,7 +58,7 @@ void ImageViewer::openImage(const cv::Mat& img)
 		.arg(this->mImg.rows);
 
 	// ¼ÆËãÍ¼Æ¬¾ØÐÎ
-	this->mRect = Transform::calcImageRect(this->mImg, cv::Size(this->mLabel->width(), this->mLabel->height()));
+	this->mRect = Calc2D::calcImageRect(this->mImg, cv::Size(this->mLabel->width(), this->mLabel->height()));
 
 	// ÏÔÊ¾Í¼Ïñ
 	this->showImage(this->mImg, this->mRect);
@@ -79,7 +79,7 @@ void ImageViewer::openImage(QString imagePath)
 		.arg(this->mImg.rows);
 
 	// ¼ÆËãÍ¼Æ¬¾ØÐÎ
-	this->mRect = Transform::calcImageRect(this->mImg, cv::Size(this->mLabel->width(), this->mLabel->height()));
+	this->mRect = Calc2D::calcImageRect(this->mImg, cv::Size(this->mLabel->width(), this->mLabel->height()));
 
 	// ÏÔÊ¾Í¼Ïñ
 	this->showImage(this->mImg, this->mRect);
@@ -147,7 +147,7 @@ void ImageViewer::mouseDoubleClickEvent(QMouseEvent* evt)
 
 	if (this->mImg.data)
 	{
-		this->mRect = Transform::calcImageRect(this->mImg, cv::Size(this->mLabel->width(), this->mLabel->height()));
+		this->mRect = Calc2D::calcImageRect(this->mImg, cv::Size(this->mLabel->width(), this->mLabel->height()));
 		this->showImage(this->mImg, this->mRect);
 	}
 }
@@ -179,25 +179,9 @@ void ImageViewer::mouseMoveEvent(QMouseEvent* evt)
 		tRect.y += (this->meY - this->msY);
 		this->showImage(this->mImg, tRect);
 
-		cv::Point iPt(this->meX, this->meY);
-		if (tRect.contains(iPt))
+		px p;
+		if (Calc2D::getPxFromImage(p, cv::Point(this->meX, this->meY), this->mImg, tRect))
 		{
-			px p;
-			p.x = double(iPt.x - tRect.x)* (double(this->mImg.cols) / double(tRect.width));
-			p.y = double(iPt.y - tRect.y) * (double(this->mImg.rows) / double(tRect.height));
-			p.channels = this->mImg.type() == CV_8UC3 ? 3 : 1;
-			if (p.channels == 3)
-			{
-				cv::Vec3b color = this->mImg.at<cv::Vec3b>(int(p.y), int(p.x));
-				p.r = color[2];
-				p.g = color[1];
-				p.b = color[0];
-			}
-			else
-			{
-				p.r = this->mImg.at<unsigned char>(int(p.y), int(p.x));
-			}
-
 			emit imageMouseMoveEvent(p);
 		}
 	}
@@ -218,5 +202,11 @@ void ImageViewer::mouseReleaseEvent(QMouseEvent* evt)
 		this->mRect.x += (this->meX - this->msX);
 		this->mRect.y += (this->meY - this->msY);
 		this->showImage(this->mImg, this->mRect);
+	}
+
+	px p;
+	if (Calc2D::getPxFromImage(p, cv::Point(this->meX, this->meY), this->mImg, this->mRect))
+	{
+		emit imageMouseMoveEvent(p);
 	}
 }

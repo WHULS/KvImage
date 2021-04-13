@@ -7,6 +7,7 @@
 #include <QMouseEvent>
 #include "Transform.h"
 #include "px.h"
+#include "Calc2D.h"
 
 class ImageViewer :
     public QWidget

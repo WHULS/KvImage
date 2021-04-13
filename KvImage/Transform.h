@@ -3,6 +3,7 @@
 #include <QImage>
 #include <QPixmap>
 #include <QDebug>
+#include "Calc2D.h"
 
 class Transform
 {
@@ -15,8 +16,5 @@ public:
 	static QPixmap MatToQPixmap(const cv::Mat& img, cv::Size viewSize, cv::Rect imgRect);
 	static cv::Mat QImageToMat(const QImage& qimg, bool cloneImageData = true);
 	static cv::Mat QPixmapToMat(const QPixmap& pxm, bool cloneImageData = true);
-
-	/* 计算imgSize约束下的图片矩形 */
-	static cv::Rect calcImageRect(const cv::Mat& img, cv::Size imgSize);
 };
 

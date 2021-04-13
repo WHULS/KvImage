@@ -84,6 +84,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Calc2D.cpp" />
     <ClCompile Include="ImageDir.cpp" />
     <ClCompile Include="ImageViewer.cpp" />
     <ClCompile Include="KvImage.cpp" />
@@ -101,6 +102,7 @@
     <QtRcc Include="KvImage.qrc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Calc2D.h" />
     <ClInclude Include="ImageDir.h" />
     <QtMoc Include="ImageViewer.h" />
     <ClInclude Include="px.h" />
