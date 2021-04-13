@@ -5,18 +5,23 @@
 #include <QResizeEvent>
 #include <QWheelEvent>
 #include <QMouseEvent>
-
 #include "Transform.h"
+#include "px.h"
 
 class ImageViewer :
     public QWidget
 {
+	Q_OBJECT
+
 public:
 	ImageViewer(QWidget* parent = Q_NULLPTR);
 	void showImage(const cv::Mat& img);
 	void showImage(const cv::Mat& img, cv::Rect imgRect);
 	void openImage(const cv::Mat& img);
 	void openImage(QString imagePath);
+
+signals:
+	void imageMouseMoveEvent(px p);
 
 protected:
 	void resizeEvent(QResizeEvent* evt);

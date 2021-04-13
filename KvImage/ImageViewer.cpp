@@ -167,11 +167,10 @@ void ImageViewer::mouseMoveEvent(QMouseEvent* evt)
 {
 	// 接收事件，不往下传递
 	evt->accept();
+
 	QPointF pt = evt->localPos();
 	this->meX = pt.x();
 	this->meY = pt.y();
-	qDebug() << QString("ImageViewer::mouseMoveEvent() - (x=%1, y=%2)")
-		.arg(this->meX).arg(this->meY);
 
 	if (this->mImg.data && this->mLabel->height() > 0 && this->mLabel->width() > 0)
 	{
@@ -179,6 +178,28 @@ void ImageViewer::mouseMoveEvent(QMouseEvent* evt)
 		tRect.x += (this->meX - this->msX);
 		tRect.y += (this->meY - this->msY);
 		this->showImage(this->mImg, tRect);
+
+		cv::Point iPt(this->meX, this->meY);
+		if (tRect.contains(iPt))
+		{
+			px p;
+			p.x = double(iPt.x - tRect.x)* (double(this->mImg.cols) / double(tRect.width));
+			p.y = double(iPt.y - tRect.y) * (double(this->mImg.rows) / double(tRect.height));
+			p.channels = this->mImg.type() == CV_8UC3 ? 3 : 1;
+			if (p.channels == 3)
+			{
+				cv::Vec3b color = this->mImg.at<cv::Vec3b>(int(p.y), int(p.x));
+				p.r = color[2];
+				p.g = color[1];
+				p.b = color[0];
+			}
+			else
+			{
+				p.r = this->mImg.at<unsigned char>(int(p.y), int(p.x));
+			}
+
+			emit imageMouseMoveEvent(p);
+		}
 	}
 }
 

@@ -88,6 +88,7 @@
     <ClCompile Include="ImageViewer.cpp" />
     <ClCompile Include="KvImage.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="px.cpp" />
     <ClCompile Include="Transform.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -101,7 +102,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ImageDir.h" />
-    <ClInclude Include="ImageViewer.h" />
+    <QtMoc Include="ImageViewer.h" />
+    <ClInclude Include="px.h" />
     <ClInclude Include="Transform.h" />
   </ItemGroup>
   <ItemGroup>

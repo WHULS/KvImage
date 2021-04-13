@@ -38,6 +38,7 @@ KvImage::KvImage(QWidget* parent)
 	this->initSidebar();
 	// 绑定信号和槽
 	connect(this->mSideBar->selectionModel(), &QItemSelectionModel::currentRowChanged, this, &KvImage::onImageSelectChanged);
+	connect(this->iViewer, SIGNAL(imageMouseMoveEvent(px)), this, SLOT(onImageMouseMoveEvent(px)));
 }
 
 void KvImage::refreshLayout()
@@ -158,6 +159,16 @@ void KvImage::onImageSelectChanged(const QModelIndex& curIdx, const QModelIndex&
 	qDebug() << QString::fromLocal8Bit("KvImage::onImageSelectChanged() - 选择图像: %1")
 		.arg(imgPath);
 	this->iViewer->openImage(imgPath);
+}
+
+void KvImage::onImageMouseMoveEvent(px p)
+{
+	if (ui.statusBar)
+	{
+		ui.statusBar->showMessage(QString("x=%1,y=%2,color=(%3)")
+			.arg(p.x).arg(p.y)
+			.arg(p.channels == 3 ? QString("r=%1,g=%2,b=%3").arg(p.r).arg(p.g).arg(p.b) : QString("%1").arg(p.r)));
+	}
 }
 
 void KvImage::putText(QString txt)

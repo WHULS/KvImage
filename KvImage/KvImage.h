@@ -18,6 +18,7 @@
 #include <QStandardItemModel>
 #include "ImageDir.h"
 #include <QItemSelection>
+#include "px.h"
 
 class KvImage : public QMainWindow
 {
@@ -37,6 +38,7 @@ private slots:
 	void on_action_open_image_triggered();
 	void on_action_open_directory_triggered();
 	void onImageSelectChanged(const QModelIndex& curIdx, const QModelIndex& preIdx);
+	void onImageMouseMoveEvent(px p);
 
 private:
 	Ui::KvImageClass ui;
