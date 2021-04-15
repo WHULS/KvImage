@@ -87,9 +87,11 @@
     <ClCompile Include="Calc2D.cpp" />
     <ClCompile Include="ImageDir.cpp" />
     <ClCompile Include="ImageViewer.cpp" />
+    <ClCompile Include="iPoint.cpp" />
     <ClCompile Include="KvImage.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="px.cpp" />
+    <ClCompile Include="RotRect2D.cpp" />
     <ClCompile Include="Transform.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -105,7 +107,9 @@
     <ClInclude Include="Calc2D.h" />
     <ClInclude Include="ImageDir.h" />
     <QtMoc Include="ImageViewer.h" />
+    <ClInclude Include="iPoint.h" />
     <ClInclude Include="px.h" />
+    <ClInclude Include="RotRect2D.h" />
     <ClInclude Include="Transform.h" />
   </ItemGroup>
   <ItemGroup>

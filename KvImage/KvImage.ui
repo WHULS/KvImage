@@ -32,7 +32,17 @@
     <addaction name="separator"/>
     <addaction name="action_exit"/>
    </widget>
+   <widget class="QMenu" name="menu_2">
+    <property name="title">
+     <string>绘图</string>
+    </property>
+    <addaction name="action_draw_point"/>
+    <addaction name="action_draw_line"/>
+    <addaction name="action_draw_rectangle"/>
+    <addaction name="action_draw_rotate_rectangle"/>
+   </widget>
    <addaction name="menu"/>
+   <addaction name="menu_2"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="action_open_image">
@@ -54,6 +64,38 @@
    </property>
    <property name="toolTip">
     <string>打开文件夹</string>
+   </property>
+  </action>
+  <action name="action_draw_point">
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>画点</string>
+   </property>
+   <property name="font">
+    <font>
+     <weight>50</weight>
+     <bold>false</bold>
+    </font>
+   </property>
+   <property name="priority">
+    <enum>QAction::NormalPriority</enum>
+   </property>
+  </action>
+  <action name="action_draw_line">
+   <property name="text">
+    <string>绘制直线</string>
+   </property>
+  </action>
+  <action name="action_draw_rectangle">
+   <property name="text">
+    <string>绘制矩形</string>
+   </property>
+  </action>
+  <action name="action_draw_rotate_rectangle">
+   <property name="text">
+    <string>绘制旋转矩形</string>
    </property>
   </action>
  </widget>

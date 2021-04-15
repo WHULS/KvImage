@@ -108,6 +108,7 @@ void KvImage::on_action_open_image_triggered()
 	this->iViewer->openImage(img);
 	this->putText(QString::fromLocal8Bit("打开图像：%1 (width=%2, height=%3)")
 		.arg(fileName).arg(img.cols).arg(img.rows));
+	this->ui.statusBar->showMessage(QString("%1 (width = %2, height = %3)").arg(fileName).arg(img.cols).arg(img.rows));
 }
 
 void KvImage::resizeEvent(QResizeEvent* evt)
@@ -158,7 +159,10 @@ void KvImage::onImageSelectChanged(const QModelIndex& curIdx, const QModelIndex&
 	
 	qDebug() << QString::fromLocal8Bit("KvImage::onImageSelectChanged() - 选择图像: %1")
 		.arg(imgPath);
-	this->iViewer->openImage(imgPath);
+
+	cv::Mat img = cv::imread(imgPath.toLocal8Bit().toStdString());
+	this->iViewer->openImage(img);
+	this->ui.statusBar->showMessage(QString("%1 (width = %2, height = %3)").arg(imgPath).arg(img.cols).arg(img.rows));
 }
 
 void KvImage::onImageMouseMoveEvent(px p)
@@ -168,6 +172,234 @@ void KvImage::onImageMouseMoveEvent(px p)
 		ui.statusBar->showMessage(QString("x=%1,y=%2,color=(%3)")
 			.arg(p.x).arg(p.y)
 			.arg(p.channels == 3 ? QString("r=%1,g=%2,b=%3").arg(p.r).arg(p.g).arg(p.b) : QString("%1").arg(p.r)));
+	}
+}
+
+void KvImage::on_action_draw_point_triggered()
+{
+	if (!this->iViewer->hasImage())
+	{
+		QMessageBox::information(this,
+			QString::fromLocal8Bit("提示"),
+			QString::fromLocal8Bit("请先打开一幅图像"),
+			QMessageBox::Button::Ok);
+
+		return;
+	}
+	if (!this->iViewer->isDrawing())
+	{
+		this->iViewer->startDrawPoint();
+
+		// 将其他的设置为不可选中
+		foreach (QAction *action, this->ui.menu_2->actions())
+		{
+			if (action->isSeparator()) continue;
+			
+			if (action == this->ui.action_draw_point) continue;
+
+			action->setEnabled(false);
+		}
+
+		// 修改文字
+		this->ui.action_draw_point->setText(QString::fromLocal8Bit("停止画点"));
+
+		// 设置加粗样式
+		QFont font = this->ui.action_draw_point->font();
+		font.setBold(true);
+		this->ui.action_draw_point->setFont(font);
+	}
+	else if (this->iViewer->isDrawingPoint())
+	{
+		this->iViewer->stopDrawPoint();
+
+		// 恢复其他的可选中状态
+		foreach(QAction * action, this->ui.menu_2->actions())
+		{
+			if (action->isSeparator()) continue;
+
+			if (action == this->ui.action_draw_point) continue;
+
+			action->setEnabled(true);
+		}
+
+		// 恢复文字内容
+		this->ui.action_draw_point->setText(QString::fromLocal8Bit("画点"));
+
+		// 恢复字体样式
+		QFont font = this->ui.action_draw_point->font();
+		font.setBold(false);
+		this->ui.action_draw_point->setFont(font);
+	}
+}
+
+void KvImage::on_action_draw_line_triggered()
+{
+	if (!this->iViewer->hasImage())
+	{
+		QMessageBox::information(this,
+			QString::fromLocal8Bit("提示"),
+			QString::fromLocal8Bit("请先打开一幅图像"),
+			QMessageBox::Button::Ok);
+
+		return;
+	}
+	if (!this->iViewer->isDrawing())
+	{
+		this->iViewer->startDrawLine();
+
+		// 将其他的设置为不可选中
+		foreach(QAction * action, this->ui.menu_2->actions())
+		{
+			if (action->isSeparator()) continue;
+
+			if (action == this->ui.action_draw_line) continue;
+
+			action->setEnabled(false);
+		}
+
+		// 修改文字
+		this->ui.action_draw_line->setText(QString::fromLocal8Bit("停止绘制直线"));
+
+		// 设置加粗样式
+		QFont font = this->ui.action_draw_line->font();
+		font.setBold(true);
+		this->ui.action_draw_line->setFont(font);
+	}
+	else if (this->iViewer->isDrawingLine())
+	{
+		this->iViewer->stopDrawLine();
+
+		// 恢复其他的可选中状态
+		foreach(QAction * action, this->ui.menu_2->actions())
+		{
+			if (action->isSeparator()) continue;
+
+			if (action == this->ui.action_draw_line) continue;
+
+			action->setEnabled(true);
+		}
+
+		// 恢复文字内容
+		this->ui.action_draw_line->setText(QString::fromLocal8Bit("绘制直线"));
+
+		// 恢复字体样式
+		QFont font = this->ui.action_draw_line->font();
+		font.setBold(false);
+		this->ui.action_draw_line->setFont(font);
+	}
+}
+
+void KvImage::on_action_draw_rectangle_triggered()
+{
+	if (!this->iViewer->hasImage())
+	{
+		QMessageBox::information(this,
+			QString::fromLocal8Bit("提示"),
+			QString::fromLocal8Bit("请先打开一幅图像"),
+			QMessageBox::Button::Ok);
+
+		return;
+	}
+	if (!this->iViewer->isDrawing())
+	{
+		this->iViewer->startDrawRectangle();
+
+		// 将其他的设置为不可选中
+		foreach(QAction * action, this->ui.menu_2->actions())
+		{
+			if (action->isSeparator()) continue;
+
+			if (action == this->ui.action_draw_rectangle) continue;
+
+			action->setEnabled(false);
+		}
+
+		// 修改文字
+		this->ui.action_draw_rectangle->setText(QString::fromLocal8Bit("停止绘制矩形"));
+
+		// 设置加粗样式
+		QFont font = this->ui.action_draw_rectangle->font();
+		font.setBold(true);
+		this->ui.action_draw_rectangle->setFont(font);
+	}
+	else if (this->iViewer->isDrawingRectangle())
+	{
+		this->iViewer->stopDrawRectangle();
+
+		// 恢复其他的可选中状态
+		foreach(QAction * action, this->ui.menu_2->actions())
+		{
+			if (action->isSeparator()) continue;
+
+			if (action == this->ui.action_draw_rectangle) continue;
+
+			action->setEnabled(true);
+		}
+
+		// 恢复文字内容
+		this->ui.action_draw_rectangle->setText(QString::fromLocal8Bit("绘制矩形"));
+
+		// 恢复字体样式
+		QFont font = this->ui.action_draw_rectangle->font();
+		font.setBold(false);
+		this->ui.action_draw_rectangle->setFont(font);
+	}
+}
+
+void KvImage::on_action_draw_rotate_rectangle_triggered()
+{
+	if (!this->iViewer->hasImage())
+	{
+		QMessageBox::information(this,
+			QString::fromLocal8Bit("提示"),
+			QString::fromLocal8Bit("请先打开一幅图像"),
+			QMessageBox::Button::Ok);
+
+		return;
+	}
+	if (!this->iViewer->isDrawing())
+	{
+		this->iViewer->startDrawRotateRectangle();
+
+		// 将其他的设置为不可选中
+		foreach(QAction * action, this->ui.menu_2->actions())
+		{
+			if (action->isSeparator()) continue;
+
+			if (action == this->ui.action_draw_rotate_rectangle) continue;
+
+			action->setEnabled(false);
+		}
+
+		// 修改文字
+		this->ui.action_draw_rotate_rectangle->setText(QString::fromLocal8Bit("停止绘制旋转矩形"));
+
+		// 设置加粗样式
+		QFont font = this->ui.action_draw_rotate_rectangle->font();
+		font.setBold(true);
+		this->ui.action_draw_rotate_rectangle->setFont(font);
+	}
+	else if (this->iViewer->isDrawingRotateRectangle())
+	{
+		this->iViewer->stopDrawRotateRectangle();
+
+		// 恢复其他的可选中状态
+		foreach(QAction * action, this->ui.menu_2->actions())
+		{
+			if (action->isSeparator()) continue;
+
+			if (action == this->ui.action_draw_rotate_rectangle) continue;
+
+			action->setEnabled(true);
+		}
+
+		// 恢复文字内容
+		this->ui.action_draw_rotate_rectangle->setText(QString::fromLocal8Bit("绘制旋转矩形"));
+
+		// 恢复字体样式
+		QFont font = this->ui.action_draw_rotate_rectangle->font();
+		font.setBold(false);
+		this->ui.action_draw_rotate_rectangle->setFont(font);
 	}
 }
 
