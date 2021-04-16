@@ -68,6 +68,7 @@ private:
 
 	// mouse start x,y; mouse end x,y
 	double msX, msY, meX, meY;
+	double mImgStartX, mImgStartY, mImgEndX, mImgEndY;  // 用于记录起止点在图像上的坐标
 
 	bool isDrawPoint,
 		isDrawLine,
