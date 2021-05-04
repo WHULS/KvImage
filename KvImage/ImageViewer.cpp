@@ -4,6 +4,7 @@ ImageViewer::ImageViewer(QWidget* parent)
 	: QWidget(parent)
 {
 	// 初始化成员变量
+	this->mImgStartX = this->mImgStartY = this->mImgEndX = this->mImgEndY = 0;
 	this->meX = this->msX = this->meY = this->msY = 0;
 	this->isDrawLine = this->isDrawPoint = this->isDrawRectangle = this->isDrawRotateRectangle = false;
 
@@ -15,7 +16,7 @@ void ImageViewer::showImage(const cv::Mat& img)
 {
 	if (!img.data)
 	{
-		qWarning() << "ImageViewer::showImage() - Mat is Empty!";
+		qWarning() << "Mat is Empty!";
 		return;
 	}
 	time_t t = cv::getTickCount();
@@ -24,7 +25,7 @@ void ImageViewer::showImage(const cv::Mat& img)
 	this->mLabel->setPixmap(Transform::MatToQPixmap(img,
 		cv::Size(this->mLabel->width(), this->mLabel->height())));
 
-	qDebug() << "ImageViewer::showImage() - Cost time: "
+	qDebug() << "Cost time: "
 		<< (double(cv::getTickCount() - t) / cv::getTickFrequency()) << "s";
 }
 
@@ -32,7 +33,7 @@ void ImageViewer::showImage(const cv::Mat& img, const cv::Rect& imgRect)
 {
 	if (!img.data)
 	{
-		qWarning() << "ImageViewer::showImage() - Mat is Empty!";
+		qWarning() << "Mat is Empty!";
 		return;
 	}
 	time_t t = cv::getTickCount();
@@ -41,7 +42,7 @@ void ImageViewer::showImage(const cv::Mat& img, const cv::Rect& imgRect)
 	this->mLabel->setPixmap(Transform::MatToQPixmap(img,
 		cv::Size(this->mLabel->width(), this->mLabel->height()), imgRect));
 
-	qDebug() << "ImageViewer::showImage() - Cost time: "
+	qDebug() << "Cost time: "
 		<< (double(cv::getTickCount() - t) / cv::getTickFrequency()) << "s";
 }
 
@@ -49,43 +50,123 @@ void ImageViewer::openImage(const cv::Mat& img)
 {
 	if (!img.data)
 	{
-		qWarning() << "ImageViewer::openImage - Mat is Empty";
+		qWarning() << "Mat is Empty";
 		return;
 	}
 	this->mImg = img.clone();
-	qDebug() << QString::fromLocal8Bit("ImageViewer::openImage - 图像尺寸：width=%1px, height=%2px")
+	qDebug() << QString::fromLocal8Bit("图像尺寸：width=%1px, height=%2px")
 		.arg(this->mImg.cols)
 		.arg(this->mImg.rows);
 
 	// 计算图片矩形
-	this->mRect = Calc2D::calcImageRect(this->mImg, cv::Size(this->mLabel->width(), this->mLabel->height()));
+	this->mImgRect = Calc2D::calcImageRect(this->mImg, cv::Size2d(this->mLabel->width(), this->mLabel->height()));
 
 	// 显示图像
-	this->showImage(this->mImg, this->mRect);
+	this->showImage(this->mImg, this->mImgRect);
 
 	// 清空绘图
 	this->clearDrawing();
 }
 
-void ImageViewer::openImage(QString imagePath)
+void ImageViewer::openImageWithPoints(const cv::Mat& img, const QList<cv::Point2d>& pts)
 {
-	qDebug() << QString::fromLocal8Bit("ImageViewer::openImage - 打开图像 (%1)").arg(imagePath);
-	this->mImg = cv::imread(imagePath.toLocal8Bit().toStdString());
-	if (!this->mImg.data)
+	if (!img.data)
 	{
-		qWarning() << QString("ImageViewer::openImage - Read image failed! [%1]")
-			.arg(imagePath);
+		qWarning() << "Mat is Empty";
 		return;
 	}
-	qDebug() << QString::fromLocal8Bit("ImageViewer::openImage - 图像尺寸：width=%1px, height=%2px")
+	this->mImg = img.clone();
+	qDebug() << QString::fromLocal8Bit("图像尺寸：width=%1px, height=%2px")
 		.arg(this->mImg.cols)
 		.arg(this->mImg.rows);
 
 	// 计算图片矩形
-	this->mRect = Calc2D::calcImageRect(this->mImg, cv::Size(this->mLabel->width(), this->mLabel->height()));
+	this->mImgRect = Calc2D::calcImageRect(this->mImg, cv::Size2d(this->mLabel->width(), this->mLabel->height()));
 
 	// 显示图像
-	this->showImage(this->mImg, this->mRect);
+	this->mPts = pts.toVector().toStdVector();
+	this->showImageWithPoints(this->mImg, this->mImgRect, this->mPts);
+}
+
+void ImageViewer::openImageWithLines(const cv::Mat& img, const QList<cv::Vec4d>& lines)
+{
+	if (!img.data)
+	{
+		qWarning() << "Mat is Empty";
+		return;
+	}
+	this->mImg = img.clone();
+	qDebug() << QString::fromLocal8Bit("图像尺寸：width=%1px, height=%2px")
+		.arg(this->mImg.cols)
+		.arg(this->mImg.rows);
+
+	// 计算图片矩形
+	this->mImgRect = Calc2D::calcImageRect(this->mImg, cv::Size2d(this->mLabel->width(), this->mLabel->height()));
+
+	// 显示图像
+	this->mLines = lines.toVector().toStdVector();
+	this->showImageWithLines(this->mImg, this->mImgRect, this->mLines);
+}
+
+void ImageViewer::openImageWithRectangles(const cv::Mat& img, const QList<cv::Rect2d>& rects)
+{
+	if (!img.data)
+	{
+		qWarning() << "Mat is Empty";
+		return;
+	}
+	this->mImg = img.clone();
+	qDebug() << QString::fromLocal8Bit("图像尺寸：width=%1px, height=%2px")
+		.arg(this->mImg.cols)
+		.arg(this->mImg.rows);
+
+	// 计算图片矩形
+	this->mImgRect = Calc2D::calcImageRect(this->mImg, cv::Size2d(this->mLabel->width(), this->mLabel->height()));
+
+	// 显示图像
+	this->mRects = rects.toVector().toStdVector();
+	this->showImageWithRectangles(this->mImg, this->mImgRect, this->mRects);
+}
+
+void ImageViewer::openImageWithRotateRectangles(const cv::Mat& img, const QList<RotRect2D>& rotRects)
+{
+	if (!img.data)
+	{
+		qWarning() << "Mat is Empty";
+		return;
+	}
+	this->mImg = img.clone();
+	qDebug() << QString::fromLocal8Bit("图像尺寸：width=%1px, height=%2px")
+		.arg(this->mImg.cols)
+		.arg(this->mImg.rows);
+
+	// 计算图片矩形
+	this->mImgRect = Calc2D::calcImageRect(this->mImg, cv::Size2d(this->mLabel->width(), this->mLabel->height()));
+
+	// 显示图像
+	this->mRotRects = rotRects.toVector().toStdVector();
+	this->showImageWithRotateRectangles(this->mImg, this->mImgRect, this->mRotRects);
+}
+
+void ImageViewer::openImage(QString imagePath)
+{
+	qDebug() << QString::fromLocal8Bit("打开图像 (%1)").arg(imagePath);
+	this->mImg = cv::imread(imagePath.toLocal8Bit().toStdString());
+	if (!this->mImg.data)
+	{
+		qWarning() << QString("Read image failed! [%1]")
+			.arg(imagePath);
+		return;
+	}
+	qDebug() << QString::fromLocal8Bit("图像尺寸：width=%1px, height=%2px")
+		.arg(this->mImg.cols)
+		.arg(this->mImg.rows);
+
+	// 计算图片矩形
+	this->mImgRect = Calc2D::calcImageRect(this->mImg, cv::Size2d(this->mLabel->width(), this->mLabel->height()));
+
+	// 显示图像
+	this->showImage(this->mImg, this->mImgRect);
 
 	// 清空绘图
 	this->clearDrawing();
@@ -246,10 +327,23 @@ void ImageViewer::startDrawPoint()
 	}
 }
 
+void ImageViewer::stopDraw()
+{
+	this->isDrawPoint = false;
+	this->isDrawLine = false;
+	this->isDrawRectangle = false;
+	this->isDrawRotateRectangle = false;
+
+	this->mPts.clear();
+	this->mLines.clear();
+	this->mRects.clear();
+	this->mRotRects.clear();
+}
+
 void ImageViewer::stopDrawPoint()
 {
 	this->isDrawPoint = false;
-	this->showImage(this->mImg, this->mRect);
+	this->showImage(this->mImg, this->mImgRect);
 }
 
 void ImageViewer::startDrawLine()
@@ -264,7 +358,7 @@ void ImageViewer::startDrawLine()
 void ImageViewer::stopDrawLine()
 {
 	this->isDrawLine = false;
-	this->showImage(this->mImg, this->mRect);
+	this->showImage(this->mImg, this->mImgRect);
 }
 
 void ImageViewer::startDrawRectangle()
@@ -279,7 +373,7 @@ void ImageViewer::startDrawRectangle()
 void ImageViewer::stopDrawRectangle()
 {
 	this->isDrawRectangle = false;
-	this->showImage(this->mImg, this->mRect);
+	this->showImage(this->mImg, this->mImgRect);
 }
 
 void ImageViewer::startDrawRotateRectangle()
@@ -294,7 +388,207 @@ void ImageViewer::startDrawRotateRectangle()
 void ImageViewer::stopDrawRotateRectangle()
 {
 	this->isDrawRotateRectangle = false;
-	this->showImage(this->mImg, this->mRect);
+	this->showImage(this->mImg, this->mImgRect);
+}
+
+bool ImageViewer::deletePoint(const int idx)
+{
+	if (idx >= this->mPts.size())
+	{
+		qWarning() << "Out of range";
+		return false;
+	}
+	this->mPts.erase(this->mPts.begin() + idx);
+	this->showImageWithPoints(this->mImg, this->mImgRect, this->mPts);
+	return true;
+}
+
+bool ImageViewer::deletePoint(const cv::Point2d& pt)
+{
+	std::vector<cv::Point2d>::iterator pos = std::find(this->mPts.begin(), this->mPts.end(), pt);
+	if (pos == this->mPts.end())
+	{
+		return false;
+	}
+	this->mPts.erase(pos);
+	this->showImageWithPoints(this->mImg, this->mImgRect, this->mPts);
+	return true;
+}
+
+bool ImageViewer::deleteLine(const int idx)
+{
+	if (idx >= this->mLines.size())
+	{
+		qWarning() << "Out of range";
+		return false;
+	}
+	this->mLines.erase(this->mLines.begin() + idx);
+	this->showImageWithLines(this->mImg, this->mImgRect, this->mLines);
+	return true;
+}
+
+bool ImageViewer::deleteLine(const cv::Vec4d& line)
+{
+	std::vector<cv::Vec4d>::iterator pos = std::find(this->mLines.begin(), this->mLines.end(), line);
+	if (pos == this->mLines.end())
+	{
+		return false;
+	}
+	this->mLines.erase(pos);
+	this->showImageWithLines(this->mImg, this->mImgRect, this->mLines);
+	return true;
+}
+
+bool ImageViewer::deleteRectangle(const int idx)
+{
+	if (idx >= this->mRects.size())
+	{
+		qWarning() << "Out of range";
+		return false;
+	}
+	this->mRects.erase(this->mRects.begin() + idx);
+	this->showImageWithRectangles(this->mImg, this->mImgRect, this->mRects);
+	return true;
+}
+
+bool ImageViewer::deleteRectangle(const cv::Rect2d& rect)
+{
+	std::vector<cv::Rect2d>::iterator pos = std::find(this->mRects.begin(), this->mRects.end(), rect);
+	if (pos == this->mRects.end())
+	{
+		return false;
+	}
+	this->mRects.erase(pos);
+	this->showImageWithRectangles(this->mImg, this->mImgRect, this->mRects);
+	return true;
+}
+
+bool ImageViewer::deleteRotateRectangle(const int idx)
+{
+	if (idx >= this->mRotRects.size())
+	{
+		qWarning() << "Out of range";
+		return false;
+	}
+	this->mRotRects.erase(this->mRotRects.begin() + idx);
+	this->showImageWithRotateRectangles(this->mImg, this->mImgRect, this->mRotRects);
+	return true;
+}
+
+bool ImageViewer::deleteRotateRectangle(const RotRect2D& rotRect)
+{
+	std::vector<RotRect2D>::iterator pos = std::find(this->mRotRects.begin(), this->mRotRects.end(), rotRect);
+	if (pos == this->mRotRects.end())
+	{
+		return false;
+	}
+	this->mRotRects.erase(pos);
+	this->showImageWithRotateRectangles(this->mImg, this->mImgRect, this->mRotRects);
+	return true;
+}
+
+void ImageViewer::zoomToPoint(const int idx, const double viewWidth, const double viewHeight)
+{
+	if (!this->mImg.data)
+	{
+		qWarning() << "Image is empty";
+		return;
+	}
+	if (idx >= this->mPts.size())
+	{
+		qWarning() << "Out of range";
+		return;
+	}
+
+	cv::Point2d pt = this->mPts[idx];
+	cv::Rect2d viewRect(pt.x - viewWidth / 2, pt.y - viewHeight / 2, viewWidth, viewHeight);
+	this->mImgRect = Calc2D::calcImageRectWithViewRect(this->mImg, cv::Size2d(this->mLabel->width(), this->mLabel->height()), viewRect);
+	this->showImageWithPoints(this->mImg, this->mImgRect, this->mPts);
+}
+
+void ImageViewer::zoomToLine(const int idx, const double viewWidthExpand, const double viewHeightExpand)
+{
+	if (!this->mImg.data)
+	{
+		qWarning() << "Image is empty";
+		return;
+	}
+	if (idx >= this->mLines.size())
+	{
+		qWarning() << "Out of range";
+		return;
+	}
+	
+	cv::Vec4d line = this->mLines[idx];
+	double x1, y1, x2, y2;
+	if (line[0] <= line[2])
+	{
+		x1 = line[0];
+		x2 = line[2];
+	}
+	else
+	{
+		x1 = line[2];
+		x2 = line[0];
+	}
+	if (line[1] <= line[3])
+	{
+		y1 = line[1];
+		y2 = line[3];
+	}
+	else
+	{
+		y1 = line[3];
+		y2 = line[1];
+	}
+	cv::Rect2d viewRect(x1 - viewWidthExpand / 2, y1 - viewHeightExpand / 2, 0, 0);
+	viewRect.width = x2 + viewWidthExpand / 2 - viewRect.x;
+	viewRect.height = y2 + viewHeightExpand / 2 - viewRect.y;
+	this->mImgRect = Calc2D::calcImageRectWithViewRect(this->mImg,
+		cv::Size2d(this->mLabel->width(), this->mLabel->height()), viewRect);
+	this->showImageWithLines(this->mImg, this->mImgRect, this->mLines);
+}
+
+void ImageViewer::zoomToRectangle(const int idx, const double viewWidthExpand, const double viewHeightExpand)
+{
+	if (!this->mImg.data)
+	{
+		qWarning() << "Image is empty";
+		return;
+	}
+	if (idx >= this->mRects.size())
+	{
+		qWarning() << "Out of range";
+		return;
+	}
+
+	cv::Rect2d rect = this->mRects[idx];
+	cv::Rect2d viewRect(rect.x - viewWidthExpand / 2, rect.y - viewHeightExpand / 2,
+		rect.width + viewWidthExpand, rect.height + viewHeightExpand);
+	this->mImgRect = Calc2D::calcImageRectWithViewRect(this->mImg,
+		cv::Size2d(this->mLabel->width(), this->mLabel->height()), viewRect);
+	this->showImageWithRectangles(this->mImg, this->mImgRect, this->mRects);
+}
+
+void ImageViewer::zoomToRotateRectangle(const int idx, const double viewWidthExpand, const double viewHeightExpand)
+{
+	if (!this->mImg.data)
+	{
+		qWarning() << "Image is empty";
+		return;
+	}
+	if (idx >= this->mRotRects.size())
+	{
+		qWarning() << "Out of range";
+		return;
+	}
+
+	cv::Rect2d outRect = this->mRotRects[idx].getOuterRect();
+	cv::Rect2d viewRect(outRect.x - viewWidthExpand / 2, outRect.y - viewHeightExpand / 2,
+		outRect.width + viewWidthExpand, outRect.height + viewHeightExpand);
+	this->mImgRect = Calc2D::calcImageRectWithViewRect(this->mImg,
+		cv::Size2d(this->mLabel->width(), this->mLabel->height()), viewRect);
+	this->showImageWithRotateRectangles(this->mImg, this->mImgRect, this->mRotRects);
 }
 
 void ImageViewer::resizeEvent(QResizeEvent* evt)
@@ -308,7 +602,7 @@ void ImageViewer::resizeEvent(QResizeEvent* evt)
 		labelWidth = winSize.width();
 
 	this->mLabel->setGeometry(0, 0, labelWidth, labelHeight);
-	qDebug() << "ImageViewer::resizeEvent() - Label size is (width=" << labelWidth
+	qDebug() << "Label size is (width=" << labelWidth
 		<< "px, height=" << labelHeight << "px)";
 
 	// 重新显示图片
@@ -316,23 +610,23 @@ void ImageViewer::resizeEvent(QResizeEvent* evt)
 	{
 		if (this->isDrawPoint)
 		{
-			this->showImageWithPoints(this->mImg, this->mRect, this->mPts);
+			this->showImageWithPoints(this->mImg, this->mImgRect, this->mPts);
 		}
 		else if (this->isDrawLine)
 		{
-			this->showImageWithLines(this->mImg, this->mRect, this->mLines);
+			this->showImageWithLines(this->mImg, this->mImgRect, this->mLines);
 		}
 		else if (this->isDrawRectangle)
 		{
-			this->showImageWithRectangles(this->mImg, this->mRect, this->mRects);
+			this->showImageWithRectangles(this->mImg, this->mImgRect, this->mRects);
 		}
 		else if (this->isDrawRotateRectangle)
 		{
-			this->showImageWithRotateRectangles(this->mImg, this->mRect, this->mRotRects);
+			this->showImageWithRotateRectangles(this->mImg, this->mImgRect, this->mRotRects);
 		}
 		else
 		{
-			this->showImage(this->mImg, this->mRect);
+			this->showImage(this->mImg, this->mImgRect);
 		}
 	}
 }
@@ -350,58 +644,59 @@ void ImageViewer::wheelEvent(QWheelEvent* evt)
 		delta *= double(evt->angleDelta().y()) / 8 / 15;  // 向上滚为正，放大；向下滚为负，缩小
 
 		int winHeight, winWidth;
-		cv::Rect nRect;
+		cv::Rect2d nRect;
 		double imgMinZoomRatio = 0.5;         // 最小缩小到原来的几倍
 		double imgMaxZoomPx = 100;            // 最大放大到多少像素
 		double x0 = pt.x(),   // 鼠标窗口坐标
 			y0 = pt.y(),
-			x1 = double(this->mRect.x),  // 矩形左上角
-			y1 = double(this->mRect.y);
+			x1 = double(this->mImgRect.x),  // 矩形左上角
+			y1 = double(this->mImgRect.y);
 		winHeight = this->mLabel->height();
 		winWidth = this->mLabel->width();
 		// 先计算目标区域图像矩形
-		nRect.width = cvRound(double(this->mRect.width) * (1 + delta));
-		nRect.height = cvRound(double(this->mRect.height) * (1 + delta));
+		nRect.width = cvRound(double(this->mImgRect.width) * (1 + delta));
+		nRect.height = cvRound(double(this->mImgRect.height) * (1 + delta));
 		nRect.x = cvRound(x0 + (x1 - x0) * (1 + delta));
 		nRect.y = cvRound(y0 + (y1 - y0) * (1 + delta));
 		// 根据计算结果优化矩形
-		if (nRect.width < double(winWidth) * imgMinZoomRatio)
+		// 1. 缩小过小时，长宽均小于比例时，按矩形与窗口对应边的比例较大的那个来。
+		// 例如矩形长比窗口长为0.3，宽之比为0.5，那么以宽为主；否则反之。
+		double imgRectWidthZoomRatio = double(nRect.width) / double(winWidth);
+		double imgRectHeightZoomRatio = double(nRect.height) / double(winHeight);
+		if (imgRectWidthZoomRatio < imgMinZoomRatio && imgRectHeightZoomRatio < imgMinZoomRatio)
 		{
-			delta = double(winWidth) * imgMinZoomRatio / double(this->mRect.width) - 1;
-			nRect.width = cvRound(double(this->mRect.width) * (1 + delta));
-			nRect.height = cvRound(double(this->mRect.height) * (1 + delta));
+			if (imgRectWidthZoomRatio >= imgRectHeightZoomRatio)
+			{
+				delta = double(winWidth) * imgMinZoomRatio / double(this->mImgRect.width) - 1;
+			}
+			else delta = double(winHeight) * imgMinZoomRatio / double(this->mImgRect.height) - 1;
 
+			nRect.width = cvRound(double(this->mImgRect.width) * (1 + delta));
+			nRect.height = cvRound(double(this->mImgRect.height) * (1 + delta));
 			nRect.x = winWidth / 2 - nRect.width / 2;
 			nRect.y = winHeight / 2 - nRect.height / 2;
 		}
-		if (nRect.height < double(winHeight) * imgMinZoomRatio)
+		// 2. 放大过大时，显示区映射到图像上矩形长宽任意一个小于限定值时，需要进行拉伸，保证大于限定值
+		// 例如，放大后显示区矩形映射到图像上宽度为90，高度为80，限定值为100，那么要求两个都大于100
+		// 调整后显示区高度应该为100，宽度为112.5，保证都大于限定值
+		double imgRectRawImageWidth = double(winWidth) / double(nRect.width) * double(this->mImg.cols);
+		double imgRectRawImageHeight = double(winHeight) / double(nRect.height) * double(this->mImg.rows);
+		if (imgRectRawImageWidth < imgMaxZoomPx || imgRectRawImageHeight < imgMaxZoomPx)
 		{
-			delta = double(winHeight) * imgMinZoomRatio / double(this->mRect.height) - 1;
-			nRect.width = cvRound(double(this->mRect.width) * (1 + delta));
-			nRect.height = cvRound(double(this->mRect.height) * (1 + delta));
+			double zoomRatio;
+			if (imgRectRawImageWidth <= imgRectRawImageHeight)
+			{
+				zoomRatio = imgRectRawImageWidth / imgMaxZoomPx;
+			} else zoomRatio = imgRectRawImageHeight / imgMaxZoomPx;
 
-			nRect.x = winWidth / 2 - nRect.width / 2;
-			nRect.y = winHeight / 2 - nRect.height / 2;
-		}
-		if (double(winWidth) / double(nRect.width) * double(this->mImg.cols) < imgMaxZoomPx)
-		{
-			double zoomRatio = double(winWidth) * double(this->mImg.cols) / imgMaxZoomPx / double(nRect.width);
 			nRect.width = double(nRect.width) * zoomRatio;
 			nRect.height = double(nRect.height) * zoomRatio;
 			nRect.x = cvRound(x0 + (nRect.x - x0) * (zoomRatio));
 			nRect.y = cvRound(y0 + (nRect.y - y0) * (zoomRatio));
 		}
-		if (double(winHeight) / double(nRect.height) * double(this->mImg.rows) < imgMaxZoomPx)
-		{
-			double zoomRatio = double(winHeight) * double(this->mImg.rows) / imgMaxZoomPx / double(nRect.height);
-			nRect.width = double(nRect.width) * zoomRatio;
-			nRect.height = double(nRect.height) * zoomRatio;
-			nRect.x = cvRound(x0 + (nRect.x - x0) * (zoomRatio));
-			nRect.y = cvRound(y0 + (nRect.y - y0) * (zoomRatio));
-		}
 
-		if (this->mRect == nRect) return;
-		this->mRect = nRect;
+		if (this->mImgRect == nRect) return;
+		this->mImgRect = nRect;
 
 		{
 			//// 不允许缩放过度
@@ -426,10 +721,10 @@ void ImageViewer::wheelEvent(QWheelEvent* evt)
 		}
 
 		qDebug() << QString::fromLocal8Bit("当前图像大小：width=%1, height=%2; 显示区占图比例: w=%3, h=%4")
-			.arg(this->mRect.width)
-			.arg(this->mRect.height)
-			.arg(double(this->mLabel->width()) / double(this->mRect.width))
-			.arg(double(this->mLabel->height()) / double(this->mRect.height));
+			.arg(this->mImgRect.width)
+			.arg(this->mImgRect.height)
+			.arg(double(this->mLabel->width()) / double(this->mImgRect.width))
+			.arg(double(this->mLabel->height()) / double(this->mImgRect.height));
 
 		if (this->isDrawPoint)
 		{
@@ -438,9 +733,9 @@ void ImageViewer::wheelEvent(QWheelEvent* evt)
 			{
 				cv::Mat frame = this->mImg.clone();
 				this->drawPoint(frame, cv::Point2d(this->mImgEndX, this->mImgEndY));
-				this->showImageWithPoints(frame, this->mRect, this->mPts);
+				this->showImageWithPoints(frame, this->mImgRect, this->mPts);
 			}
-			else this->showImageWithPoints(this->mImg, this->mRect, this->mPts);
+			else this->showImageWithPoints(this->mImg, this->mImgRect, this->mPts);
 		}
 		else if (this->isDrawLine)
 		{
@@ -451,9 +746,9 @@ void ImageViewer::wheelEvent(QWheelEvent* evt)
 				{
 					this->drawLine(frame, cv::Vec4d(this->mImgStartX, this->mImgStartY, this->mImgEndX, this->mImgEndY));
 				}
-				this->showImageWithLines(frame, this->mRect, this->mLines);
+				this->showImageWithLines(frame, this->mImgRect, this->mLines);
 			}
-			else this->showImageWithLines(this->mImg, this->mRect, this->mLines);
+			else this->showImageWithLines(this->mImg, this->mImgRect, this->mLines);
 			
 		}
 		else if (this->isDrawRectangle)
@@ -486,9 +781,9 @@ void ImageViewer::wheelEvent(QWheelEvent* evt)
 					}
 					this->drawRectangle(frame, cv::Rect2d(x1, y1, x2 - x1, y2 - y1));
 				}
-				this->showImageWithRectangles(frame, this->mRect, this->mRects);
+				this->showImageWithRectangles(frame, this->mImgRect, this->mRects);
 			}
-			else this->showImageWithRectangles(this->mImg, this->mRect, this->mRects);
+			else this->showImageWithRectangles(this->mImg, this->mImgRect, this->mRects);
 		}
 		else if (this->isDrawRotateRectangle)
 		{
@@ -501,11 +796,11 @@ void ImageViewer::wheelEvent(QWheelEvent* evt)
 					RotRect2D rotRect(cv::Vec4d(this->mImgStartX, this->mImgStartY, this->mImgEndX, this->mImgEndY));
 					this->drawRotateRectangle(frame, rotRect);
 				}
-				this->showImageWithRotateRectangles(frame, this->mRect, this->mRotRects);
+				this->showImageWithRotateRectangles(frame, this->mImgRect, this->mRotRects);
 			}
-			else this->showImageWithRotateRectangles(this->mImg, this->mRect, this->mRotRects);
+			else this->showImageWithRotateRectangles(this->mImg, this->mImgRect, this->mRotRects);
 		}
-		else this->showImage(this->mImg, this->mRect);
+		else this->showImage(this->mImg, this->mImgRect);
 	}
 }
 
@@ -515,34 +810,34 @@ void ImageViewer::mouseDoubleClickEvent(QMouseEvent* evt)
 	evt->accept();
 
 	QPointF pt = evt->localPos();
-	qDebug() << QString("ImageViewer::mouseDoubleClickEvent() - (x=%1, y=%2)")
+	qDebug() << QString("(x=%1, y=%2)")
 		.arg(pt.x()).arg(pt.y());
 
 	if (this->mImg.data)
 	{
-		cv::Rect rect = Calc2D::calcImageRect(this->mImg, cv::Size(this->mLabel->width(), this->mLabel->height()));
-		if (this->mRect != rect)
+		cv::Rect2d rect = Calc2D::calcImageRect(this->mImg, cv::Size2d(this->mLabel->width(), this->mLabel->height()));
+		if (this->mImgRect != rect)
 		{
-			this->mRect = rect;
+			this->mImgRect = rect;
 			if (this->isDrawPoint)
 			{
-				this->showImageWithPoints(this->mImg, this->mRect, this->mPts);
+				this->showImageWithPoints(this->mImg, this->mImgRect, this->mPts);
 			}
 			else if (this->isDrawLine)
 			{
-				this->showImageWithLines(this->mImg, this->mRect, this->mLines);
+				this->showImageWithLines(this->mImg, this->mImgRect, this->mLines);
 			}
 			else if (this->isDrawRectangle)
 			{
-				this->showImageWithRectangles(this->mImg, this->mRect, this->mRects);
+				this->showImageWithRectangles(this->mImg, this->mImgRect, this->mRects);
 			}
 			else if (this->isDrawRotateRectangle)
 			{
-				this->showImageWithRotateRectangles(this->mImg, this->mRect, this->mRotRects);
+				this->showImageWithRotateRectangles(this->mImg, this->mImgRect, this->mRotRects);
 			}
 			else
 			{
-				this->showImage(this->mImg, this->mRect);
+				this->showImage(this->mImg, this->mImgRect);
 			}
 		}
 	}
@@ -555,22 +850,23 @@ void ImageViewer::mousePressEvent(QMouseEvent* evt)
 	QPointF pt = evt->localPos();
 	this->msX = this->meX = pt.x();
 	this->msY = this->meY = pt.y();
-	qDebug() << QString("ImageViewer::mousePressEvent() - (x=%1, y=%2)")
+	qDebug() << QString("(x=%1, y=%2)")
 		.arg(this->msX).arg(this->msY);
 
 	if (this->mImg.data && this->mLabel->height() > 0 && this->mLabel->width() > 0)
 	{
 		px p;
-		if (Calc2D::getPxFromImage(p, cv::Point(this->meX, this->meY), this->mImg, this->mRect))
+		if (Calc2D::getPxFromImage(p, cv::Point(this->meX, this->meY), this->mImg, this->mImgRect))
 		{
 			this->mImgStartX = this->mImgEndX = p.x;
 			this->mImgStartY = this->mImgEndY = p.y;
+			emit imageMouseMoveEvent(p);
 			
 			if (this->isDrawPoint)
 			{
 				cv::Mat frame = this->mImg.clone();
 				this->drawPoint(frame, cv::Point2d(p.x, p.y));
-				this->showImageWithPoints(frame, this->mRect, this->mPts);
+				this->showImageWithPoints(frame, this->mImgRect, this->mPts);
 			}
 			else if (this->isDrawLine)
 			{
@@ -601,7 +897,8 @@ void ImageViewer::mouseMoveEvent(QMouseEvent* evt)
 	{
 		// 如果在绘图时取不到像素点，则退出；一般情况下取不到像素点可能是在移动图像
 		px p;
-		if (!Calc2D::getPxFromImage(p, cv::Point(this->meX, this->meY), this->mImg, this->mRect) && this->isDrawing())
+		if (!Calc2D::getPxFromImage(p, cv::Point(this->meX, this->meY), this->mImg, this->mImgRect)
+			&& this->isDrawing())
 		{
 			return;
 		}
@@ -615,7 +912,7 @@ void ImageViewer::mouseMoveEvent(QMouseEvent* evt)
 		{
 			cv::Mat frame = this->mImg.clone();
 			this->drawPoint(frame, cv::Point2d(this->mImgEndX, this->mImgEndY));
-			this->showImageWithPoints(frame, this->mRect, this->mPts);
+			this->showImageWithPoints(frame, this->mImgRect, this->mPts);
 		}
 		else if (this->isDrawLine)
 		{
@@ -624,7 +921,7 @@ void ImageViewer::mouseMoveEvent(QMouseEvent* evt)
 			{
 				this->drawLine(frame, cv::Vec4d(this->mImgStartX, this->mImgStartY, this->mImgEndX, this->mImgEndY));
 			}
-			this->showImageWithLines(frame, this->mRect, this->mLines);
+			this->showImageWithLines(frame, this->mImgRect, this->mLines);
 		}
 		else if (this->isDrawRectangle)
 		{
@@ -654,7 +951,7 @@ void ImageViewer::mouseMoveEvent(QMouseEvent* evt)
 				}
 				this->drawRectangle(frame, cv::Rect2d(x1, y1, x2 - x1, y2 - y1));
 			}
-			this->showImageWithRectangles(frame, this->mRect, this->mRects);
+			this->showImageWithRectangles(frame, this->mImgRect, this->mRects);
 			
 		}
 		else if (this->isDrawRotateRectangle)
@@ -666,11 +963,11 @@ void ImageViewer::mouseMoveEvent(QMouseEvent* evt)
 				RotRect2D rotRect(cv::Vec4d(this->mImgStartX, this->mImgStartY, this->mImgEndX, this->mImgEndY));
 				this->drawRotateRectangle(frame, rotRect);
 			}
-			this->showImageWithRotateRectangles(frame, this->mRect, this->mRotRects);
+			this->showImageWithRotateRectangles(frame, this->mImgRect, this->mRotRects);
 		}
 		else
 		{
-			cv::Rect tRect = this->mRect;
+			cv::Rect tRect = this->mImgRect;
 			tRect.x += (this->meX - this->msX);
 			tRect.y += (this->meY - this->msY);
 			this->showImage(this->mImg, tRect);
@@ -685,32 +982,37 @@ void ImageViewer::mouseReleaseEvent(QMouseEvent* evt)
 	QPointF pt = evt->localPos();
 	this->meX = pt.x();
 	this->meY = pt.y();
-	qDebug() << QString("ImageViewer::mouseReleaseEvent() - (x=%1, y=%2)")
+	qDebug() << QString("(x=%1, y=%2)")
 		.arg(this->meX).arg(this->meY);
 
 	if (this->mImg.data && this->mLabel->height() > 0 && this->mLabel->width() > 0)
 	{
 		px p;
-		if (!Calc2D::getPxFromImage(p, cv::Point(this->meX, this->meY), this->mImg, this->mRect))
+		if (!Calc2D::getPxFromImage(p, cv::Point(this->meX, this->meY), this->mImg, this->mImgRect))
 		{
 			return;
 		}
 
 		this->mImgEndX = p.x;
 		this->mImgEndY = p.y;
+		emit imageMouseMoveEvent(p);
 
 		if (this->isDrawPoint)
 		{
-			this->mPts.push_back(cv::Point2d(this->mImgEndX, this->mImgEndY));
-			this->showImageWithPoints(this->mImg, this->mRect, this->mPts);
+			cv::Point2d nPt(this->mImgEndX, this->mImgEndY);
+			this->mPts.push_back(nPt);
+			emit drawNewPoint(nPt);
+			this->showImageWithPoints(this->mImg, this->mImgRect, this->mPts);
 		}
 		else if (this->isDrawLine)
 		{
 			if (abs(this->mImgStartX - this->mImgEndX) > 1e-5 || abs(this->mImgStartY - this->mImgEndY) > 1e-5)
 			{
-				this->mLines.push_back(cv::Vec4d(this->mImgStartX, this->mImgStartY, this->mImgEndX, this->mImgEndY));
+				cv::Vec4d line(this->mImgStartX, this->mImgStartY, this->mImgEndX, this->mImgEndY);
+				this->mLines.push_back(line);
+				emit drawNewLine(line);
 			}
-			this->showImageWithLines(this->mImg, this->mRect, this->mLines);
+			this->showImageWithLines(this->mImg, this->mImgRect, this->mLines);
 		}
 		else if (this->isDrawRectangle)
 		{
@@ -737,26 +1039,30 @@ void ImageViewer::mouseReleaseEvent(QMouseEvent* evt)
 					y1 = this->mImgEndY;
 					y2 = this->mImgStartY;
 				}
-				this->mRects.push_back(cv::Rect2d(x1, y1, x2 - x1, y2 - y1));
+				cv::Rect2d nRect(x1, y1, x2 - x1, y2 - y1);
+				this->mRects.push_back(nRect);
+				emit drawNewRectangle(nRect);
 			}
 			
-			this->showImageWithRectangles(this->mImg, this->mRect, this->mRects);
+			this->showImageWithRectangles(this->mImg, this->mImgRect, this->mRects);
 		}
 		else if (this->isDrawRotateRectangle)
 		{
 			if (abs(this->mImgStartX - this->mImgEndX) > 1e-5 || abs(this->mImgStartY - this->mImgEndY) > 1e-5)
 			{
-				this->mRotRects.push_back(RotRect2D(cv::Vec4d(this->mImgStartX, this->mImgStartY, this->mImgEndX, this->mImgEndY)));
+				RotRect2D nRotRect(cv::Vec4d(this->mImgStartX, this->mImgStartY, this->mImgEndX, this->mImgEndY));
+				this->mRotRects.push_back(nRotRect);
+				emit drawNewRotateRectangle(nRotRect);
 			}
-			this->showImageWithRotateRectangles(this->mImg, this->mRect, this->mRotRects);
+			this->showImageWithRotateRectangles(this->mImg, this->mImgRect, this->mRotRects);
 		}
 		else
 		{
 			if (this->msX != this->meX || this->msY != this->meY)
 			{
-				this->mRect.x += (this->meX - this->msX);
-				this->mRect.y += (this->meY - this->msY);
-				this->showImage(this->mImg, this->mRect);
+				this->mImgRect.x += (this->meX - this->msX);
+				this->mImgRect.y += (this->meY - this->msY);
+				this->showImage(this->mImg, this->mImgRect);
 			}
 		}
 	}

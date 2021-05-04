@@ -9,55 +9,77 @@ class RotRect2D
 {
 public:
     /**
-    * @param lengthExpand: ä¸ç›´çº¿å¹³è¡Œæ–¹å‘çš„åŒºåŸŸæ‰©å±•ï¼ˆé»˜è®¤ä¸º0ï¼‰
-    * @param widthExpand: ä¸ç›´çº¿å‚ç›´æ–¹å‘çš„åŒºåŸŸæ‰©å±•ï¼ˆé»˜è®¤ä¸º10ï¼‰
+    * @param lengthExpand: ÓëÖ±ÏßÆ½ĞĞ·½ÏòµÄÇøÓòÀ©Õ¹£¨Ä¬ÈÏÎª0£©
+    * @param widthExpand: ÓëÖ±Ïß´¹Ö±·½ÏòµÄÇøÓòÀ©Õ¹£¨Ä¬ÈÏÎª10£©
     */
     RotRect2D(cv::Vec4d centerLine, double lengthExpand = 0.0, double widthExpand = 10.0);
     RotRect2D(cv::Point2d pt1, cv::Point2d pt2, cv::Point2d pt3, cv::Point2d pt4);
     RotRect2D();
     ~RotRect2D() {}
 
-	/// è·å–å‚æ•°ç›¸å…³
-    double getRotateAngle() const;  // è·å–çŸ©å½¢æ—‹è½¬è§’åº¦ï¼ˆå›¾åƒåæ ‡ç³»ï¼‰
-	cv::Point2d getRectCenter() const;  // è·å–çŸ©å½¢ä¸­å¿ƒ
-	cv::Size2d getRectSize() const;  // è·å–çŸ©å½¢å¤§å°
-    std::vector<cv::Vec4d> getEdgeLines() const;  // è·å–è¾¹ç¼˜ç›´çº¿
-	void getCenterPoints(std::vector<cv::Point>& points) const;  // è·å–ä¸­å¿ƒçº¿çš„ç‚¹
-	void getEdgePoints(std::vector<cv::Point>& points) const;  // è·å–è¾¹ç¼˜ç‚¹ï¼ˆæ‰€æœ‰ï¼‰
-    cv::Rect2d getOuterRect() const;  // è·å–å¤–æ¥çŸ©å½¢ï¼ˆä¸åæ ‡è½´å¹³è¡Œï¼‰
-	cv::Mat getMask(const cv::Rect& refMatRect) const;  // è·å–æ—‹è½¬çŸ©å½¢è’™ç‰ˆ
-	cv::Vec4d getCenterLineAbs() const;  // è·å–ç»å¯¹åæ ‡ç³»ä¸‹çš„ä¸­å¿ƒçº¿
-	cv::Vec4d getCenterLineRel() const;  // è·å–ç›¸å¯¹å¤–æ¡†åæ ‡ç³»ä¸‹çš„ä¸­å¿ƒçº¿
-	cv::Vec4d getInitLineRel() const;  // è·å–ç›¸å¯¹åæ ‡çš„åˆå§‹ç›´çº¿
-	cv::Vec4d getInitLineAbs() const;  // è·å–ç»å¯¹åæ ‡çš„åˆå§‹ç›´çº¿
+	/// »ñÈ¡²ÎÊıÏà¹Ø
+    double getRotateAngle() const;  // »ñÈ¡¾ØĞÎĞı×ª½Ç¶È£¨Í¼Ïñ×ø±êÏµ£©
+	cv::Point2d getRectCenter() const;  // »ñÈ¡¾ØĞÎÖĞĞÄ
+	cv::Size2d getRectSize() const;  // »ñÈ¡¾ØĞÎ´óĞ¡
+    std::vector<cv::Vec4d> getEdgeLines() const;  // »ñÈ¡±ßÔµÖ±Ïß
+	void getCenterPoints(std::vector<cv::Point>& points) const;  // »ñÈ¡ÖĞĞÄÏßµÄµã
+	void getEdgePoints(std::vector<cv::Point>& points) const;  // »ñÈ¡±ßÔµµã£¨ËùÓĞ£©
+    cv::Rect2d getOuterRect() const;  // »ñÈ¡Íâ½Ó¾ØĞÎ£¨Óë×ø±êÖáÆ½ĞĞ£©
+	cv::Mat getMask(const cv::Rect& refMatRect) const;  // »ñÈ¡Ğı×ª¾ØĞÎÃÉ°æ
+	cv::Vec4d getCenterLineAbs() const;  // »ñÈ¡¾ø¶Ô×ø±êÏµÏÂµÄÖĞĞÄÏß
+	cv::Vec4d getCenterLineRel() const;  // »ñÈ¡Ïà¶ÔÍâ¿ò×ø±êÏµÏÂµÄÖĞĞÄÏß
+	cv::Vec4d getInitLineRel() const;  // »ñÈ¡Ïà¶Ô×ø±êµÄ³õÊ¼Ö±Ïß
+	cv::Vec4d getInitLineAbs() const;  // »ñÈ¡¾ø¶Ô×ø±êµÄ³õÊ¼Ö±Ïß
 
 
-	/// ç»˜å›¾ç›¸å…³
-    void drawCornerPoints(cv::Mat &showImage, cv::Scalar color = cv::Scalar::all(-1)) const;  // ç»˜åˆ¶ç‚¹
-	void drawEdgeLines(cv::Mat& showImage, cv::Scalar color = cv::Scalar::all(-1), double lineWidth = 1) const;  // ç»˜åˆ¶æ—‹è½¬çŸ©å½¢è¾¹ç¼˜ç›´çº¿
+	/// »æÍ¼Ïà¹Ø
+    void drawCornerPoints(cv::Mat &showImage, cv::Scalar color = cv::Scalar::all(-1)) const;  // »æÖÆµã
+	void drawEdgeLines(cv::Mat& showImage, cv::Scalar color = cv::Scalar::all(-1), double lineWidth = 1) const;  // »æÖÆĞı×ª¾ØĞÎ±ßÔµÖ±Ïß
 	void drawCenterLines(cv::Mat& showImage, cv::Scalar color = cv::Scalar::all(-1), double lineWidth = 1) const;
 
 
-	/// çŸ©é˜µæ“ä½œç›¸å…³
+	/// ¾ØÕó²Ù×÷Ïà¹Ø
 	/*
-		åˆ é™¤ä¸ä½äºæ—‹è½¬çŸ©å½¢å†…çš„åƒç´ ç‚¹ï¼Œrectæ˜¯æˆªå–srcçš„çŸ©å½¢
+		É¾³ı²»Î»ÓÚĞı×ª¾ØĞÎÄÚµÄÏñËØµã£¬rectÊÇ½ØÈ¡srcµÄ¾ØĞÎ
 		RotRect2D r(line);
 		Rect2d rect = r.getOuterRect();
 		Mat src = img(rect).clone();
 	*/
 	void deleteOuterPoints(cv::Mat& src, cv::Rect2d rect, unsigned char light_thr = 50) const;
-	void getInnerPoints(cv::Mat& src, std::vector<iPoint>& ipts, cv::Rect2d rect, unsigned char light_thr = 50) const;  // å°†srcä¸­ä½äºè¯¥æ—‹è½¬çŸ©å½¢å†…çš„ç‚¹æå‡ºæ¥ï¼Œè¾“å‡ºåˆ°æ•°ç»„ä¸­
+	void getInnerPoints(cv::Mat& src, std::vector<iPoint>& ipts, cv::Rect2d rect, unsigned char light_thr = 50) const;  // ½«srcÖĞÎ»ÓÚ¸ÃĞı×ª¾ØĞÎÄÚµÄµãÌá³öÀ´£¬Êä³öµ½Êı×éÖĞ
 
 
-	/// äºŒç»´å˜æ¢ç›¸å…³
-    void rotate(double angle);  // ç»•ç¼“å†²åŒºä¸­å¿ƒæ—‹è½¬
-    void translation(cv::Point2d offset);  // å¹³ç§»
-    void zoom(double scale);  // ç¼©æ”¾
-    bool contain(cv::Point2d pt) const;  // åˆ¤æ–­ç‚¹æ˜¯å¦ä½äºçŸ©å½¢å†…
+	/// ¶şÎ¬±ä»»Ïà¹Ø
+    void rotate(double angle);  // ÈÆ»º³åÇøÖĞĞÄĞı×ª
+    void translation(cv::Point2d offset);  // Æ½ÒÆ
+    void zoom(double scale);  // Ëõ·Å
+    bool contain(cv::Point2d pt) const;  // ÅĞ¶ÏµãÊÇ·ñÎ»ÓÚ¾ØĞÎÄÚ
 	bool contain(double x, double y) const;
 
 public:
-    cv::Point2d pt1, pt2, pt3, pt4;  // å››ä¸ªè§’ç‚¹
-    cv::Size2d m_size;  // çŸ©å½¢å°ºå¯¸
-	cv::Vec4d initLine;  // å¤‡ä»½åˆ›å»ºæ—‹è½¬çŸ©å½¢çš„åˆå§‹ä¸­å¿ƒçº¿
+	inline bool operator == (const RotRect2D& other)
+	{
+		return (
+			abs(this->pt1().x - other.pt1().x) < 1e-5 &&
+			abs(this->pt1().y - other.pt1().y) < 1e-5 &&
+			abs(this->pt2().x - other.pt2().x) < 1e-5 &&
+			abs(this->pt2().y - other.pt2().y) < 1e-5 &&
+			abs(this->pt3().x - other.pt3().x) < 1e-5 &&
+			abs(this->pt3().y - other.pt3().y) < 1e-5 &&
+			abs(this->pt4().x - other.pt4().x) < 1e-5 &&
+			abs(this->pt4().y - other.pt4().y) < 1e-5
+		);
+	}
+public:
+	cv::Point2d pt1() const { return this->mPt1; }
+	cv::Point2d pt2() const { return this->mPt2; }
+	cv::Point2d pt3() const { return this->mPt3; }
+	cv::Point2d pt4() const { return this->mPt4; }
+	cv::Size2d size() const { return this->mSize; }
+	cv::Vec4d initLine() const { return this->mInitLine; }
+
+private:
+    cv::Point2d mPt1, mPt2, mPt3, mPt4;  // ËÄ¸ö½Çµã
+    cv::Size2d mSize;  // ¾ØĞÎ³ß´ç
+	cv::Vec4d mInitLine;  // ±¸·İ´´½¨Ğı×ª¾ØĞÎµÄ³õÊ¼ÖĞĞÄÏß
 };

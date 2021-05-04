@@ -9,22 +9,22 @@ iPoint::iPoint()
 
 iPoint::iPoint(int x, int y, uchar light)
 {
-	this->x() = x;
-	this->y() = y;
-	this->light() = light;
+	this->mX = x;
+	this->mY = y;
+	this->mLight = light;
 }
 
-int& iPoint::x()
+void iPoint::setX(int x)
 {
-	return this->mX;
+	this->mX = x;
 }
 
-int& iPoint::y()
+void iPoint::setY(int y)
 {
-	return this->mY;
+	this->mY = y;
 }
 
-uchar& iPoint::light()
+void iPoint::setLight(uchar light)
 {
-	return this->mLight;
+	this->mLight = light;
 }

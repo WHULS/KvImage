@@ -8,7 +8,7 @@ ImageDir::ImageDir(QString dirPath, QStringList filters)
 	this->mImageList = dir->entryInfoList(filters);
 }
 
-QList<QString> ImageDir::getImageNameList()
+QList<QString> ImageDir::getImageNameList() const
 {
 	if (this->mDirPath.isEmpty() || this->mImageList.isEmpty())
 	{
@@ -23,7 +23,7 @@ QList<QString> ImageDir::getImageNameList()
 	return nameList;
 }
 
-QList<QString> ImageDir::getImagePathList()
+QList<QString> ImageDir::getImagePathList() const
 {
 	if (this->mDirPath.isEmpty() || this->mImageList.isEmpty())
 	{
@@ -38,7 +38,7 @@ QList<QString> ImageDir::getImagePathList()
 	return pathList;
 }
 
-int ImageDir::imageNum()
+int ImageDir::imageNum() const
 {
 	if (this->mDirPath.isEmpty() || this->mImageList.isEmpty())
 	{
@@ -48,12 +48,12 @@ int ImageDir::imageNum()
 	return this->mImageList.size();
 }
 
-QString ImageDir::dirPath()
+QString ImageDir::dirPath() const
 {
 	return this->mDirPath;
 }
 
-QString ImageDir::dirName()
+QString ImageDir::dirName() const
 {
 	QStringList dirPathSplitList = this->mDirPath.split("/");
 	if (dirPathSplitList.size() == 0)

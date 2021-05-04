@@ -9,9 +9,14 @@ public:
 	iPoint();
 	iPoint(int x, int y, uchar light);
 
-	int& x();
-	int& y();
-	uchar& light();
+public:
+	int x() const { return this->mX; }
+	int y() const { return this->mY; }
+	uchar light() const { return this->mLight; }
+
+	void setX(int x);
+	void setY(int y);
+	void setLight(uchar light);
 
 private:
 	int mX;

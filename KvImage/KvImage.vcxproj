@@ -93,6 +93,7 @@
     <ClCompile Include="px.cpp" />
     <ClCompile Include="RotRect2D.cpp" />
     <ClCompile Include="Transform.cpp" />
+    <ClCompile Include="VectorWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="KvImage.h" />
@@ -106,8 +107,10 @@
   <ItemGroup>
     <ClInclude Include="Calc2D.h" />
     <ClInclude Include="ImageDir.h" />
+    <QtMoc Include="VectorWindow.h" />
     <QtMoc Include="ImageViewer.h" />
     <ClInclude Include="iPoint.h" />
+    <ClInclude Include="KvNamespace.h" />
     <ClInclude Include="px.h" />
     <ClInclude Include="RotRect2D.h" />
     <ClInclude Include="Transform.h" />

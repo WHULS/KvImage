@@ -905,7 +905,7 @@ void KvImage::wheelEvent(QWheelEvent* evt)
 
 
 #if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
-void customMessageHandler(QtMsgType type, const QMessageLogContext&, const QString& str)
+void customMessageHandler(QtMsgType type, const QMessageLogContext& ctx, const QString& str)
 {
 	QString txt = str;
 #else
@@ -941,12 +941,13 @@ void customMessageHandler(QtMsgType type, const char* msg)
 	default:
 		break;
 	}
-	QString logStr = QString("(%1) File:(%2) Line:(%3) - [%4] - %5\n")
+    
+	QString logStr = QString("(%1) [%2] - %3 - %4 - in: %5:%6\n")
 		.arg(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss ddd"))  // 时间
-		.arg(__FILE__).arg(__LINE__)  // 文件和行数
 		.arg(typeStr)  // 日志类型
-		.arg(txt);  // 消息内容
-
+		.arg(ctx.function)  // 函数
+		.arg(txt)      // 消息内容
+		.arg(ctx.file).arg(ctx.line);  // 文件和行数
 
 	// 输出到控制台
 	OutputDebugString(reinterpret_cast<const wchar_t*>(logStr.utf16()));

@@ -10,11 +10,11 @@ class ImageDir
 public:
 	ImageDir(QString dirPath, QStringList filters = { "*.jpg", "*.png", "*.jpeg", "*.tif", "*.bmp" });
 
-	QList<QString> getImageNameList();
-	QList<QString> getImagePathList();
-	int imageNum();
-	QString dirPath();
-	QString dirName();
+	QList<QString> getImageNameList() const;
+	QList<QString> getImagePathList() const;
+	int imageNum() const;
+	QString dirPath() const;
+	QString dirName() const;
 
 private:
 	QString mDirPath;

@@ -61,14 +61,14 @@ QImage Transform::MatToQImage(const cv::Mat& img)
     }
 
     default:
-        qWarning() << "Transform::MatToQImage() - cv::Mat image type not handled in switch: " << img.type();
+        qWarning() << "cv::Mat image type not handled in switch: " << img.type();
         break;
     }
 
     return QImage();
 }
 
-QImage Transform::MatToQImage(const cv::Mat& img, cv::Size imgSize)
+QImage Transform::MatToQImage(const cv::Mat& img, cv::Size2d imgSize)
 {
     cv::Mat src;
     cv::Rect imgRect = Calc2D::calcImageRect(img, imgSize);
@@ -77,16 +77,16 @@ QImage Transform::MatToQImage(const cv::Mat& img, cv::Size imgSize)
     return Transform::MatToQImage(src);
 }
 
-QImage Transform::MatToQImage(const cv::Mat& img, cv::Size viewSize, cv::Rect imgRect)
+QImage Transform::MatToQImage(const cv::Mat& img, cv::Size2d viewSize, cv::Rect2d imgRect)
 {
     // 视图区矩形
-    cv::Rect viewRect(0, 0, viewSize.width, viewSize.height);
+    cv::Rect2d viewRect(0, 0, viewSize.width, viewSize.height);
 
     // 图像显示的矩形
-    cv::Rect imgViewRect = viewRect & imgRect;
+    cv::Rect2d imgViewRect = viewRect & imgRect;
 
     // 如果图像矩形位于显示区内
-    if (imgViewRect != cv::Rect())
+    if (imgViewRect != cv::Rect2d())
     {
         // 背景图
         cv::Mat viewImg = cv::Mat::zeros(viewSize, img.type());
@@ -119,12 +119,12 @@ QPixmap Transform::MatToQPixmap(const cv::Mat& img)
     return QPixmap::fromImage(Transform::MatToQImage(img));
 }
 
-QPixmap Transform::MatToQPixmap(const cv::Mat& img, cv::Size imgSize)
+QPixmap Transform::MatToQPixmap(const cv::Mat& img, cv::Size2d imgSize)
 {
     return QPixmap::fromImage(Transform::MatToQImage(img, imgSize));
 }
 
-QPixmap Transform::MatToQPixmap(const cv::Mat& img, cv::Size viewSize, cv::Rect imgRect)
+QPixmap Transform::MatToQPixmap(const cv::Mat& img, cv::Size2d viewSize, cv::Rect2d imgRect)
 {
     return QPixmap::fromImage(Transform::MatToQImage(img, viewSize, imgRect));
 }
@@ -152,7 +152,7 @@ cv::Mat Transform::QImageToMat(const QImage& qimg, bool cloneImageData)
     {
         if (!cloneImageData)
         {
-            qWarning() << "Transform::QImageToMat() - Conversion requires cloning because we use a temporary QImage";
+            qWarning() << "Conversion requires cloning because we use a temporary QImage";
         }
 
         QImage   swapped = qimg;
@@ -184,7 +184,7 @@ cv::Mat Transform::QImageToMat(const QImage& qimg, bool cloneImageData)
     }
 
     default:
-        qWarning() << "Transform::QImageToMat() - QImage format not handled in switch: " << qimg.format();
+        qWarning() << "QImage format not handled in switch: " << qimg.format();
         break;
     }
 
