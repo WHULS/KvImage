@@ -11,6 +11,15 @@ It's a simple image viewer based on VS2019(v142), OpenCV 3.1.0 and Qt5.12.9. You
 - Qt 5.12.9
 - VS Qt Plugin 2.4.3
 
+# Package Qt Project to Executable Wrap
+
+Package by `windeployqt.exe`
+
+```shell
+# <qmake_Path>/windeployqt.exe <***.exe>
+D:/Qt/Qt5.12.9/5.12.9/msvc2017/bin/windeployqt.exe KvImage.exe
+```
+
 # Developer notes
 
 <a target="_blank" href="./docs/developer_note_v1.0.md">v1.0</a>
