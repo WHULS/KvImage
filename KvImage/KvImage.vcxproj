@@ -85,7 +85,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Calc2D.cpp" />
-    <ClCompile Include="ClassTest.cpp" />
     <ClCompile Include="ImageDir.cpp" />
     <ClCompile Include="ImageViewer.cpp" />
     <ClCompile Include="iPoint.cpp" />
@@ -107,7 +106,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Calc2D.h" />
-    <ClInclude Include="ClassTest.h" />
     <ClInclude Include="ImageDir.h" />
     <QtMoc Include="VectorWindow.h" />
     <QtMoc Include="ImageViewer.h" />
