@@ -11,7 +11,7 @@ if __name__ == '__main__':
                              time.localtime(time.time()))
     os.system('git add .')
     os.system('git commit -m "{:s} - {:s}"'.format(time_str, push_msg))
-    os.system('git push origin')
+    os.system('git push origin master')
     os.system('git fetch origin')
     os.system('git branch -v -a')
     os.system('pause')
